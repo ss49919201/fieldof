@@ -26,3 +26,28 @@ func FieldOf(v any) ([]string, error) {
 	}
 	return fields, nil
 }
+
+func PublicFieldOf(v any) ([]string, error) {
+	val := reflect.ValueOf(v)
+	switch val.Type().Kind() {
+	case reflect.Struct:
+		// valid value
+	case reflect.Ptr:
+		return FieldOf(val.Elem().Interface())
+	default:
+		return nil, errors.New("invalid type arg")
+	}
+
+	if !val.IsValid() {
+		return nil, errors.New("invalid value")
+	}
+
+	fields := []string{}
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Type().Field(i)
+		if field.IsExported() {
+			fields = append(fields, val.Type().Field(i).Name)
+		}
+	}
+	return fields, nil
+}
